@@ -60,6 +60,6 @@ def get_search():
   print('Enter the line you\'re looking for: ')
   return input()
 
-#runtime
-script_iter(get_search())
+if __name__ == "__main__":
+  script_iter(get_search())
 
