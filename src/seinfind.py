@@ -1,6 +1,7 @@
 from lxml import html
 import requests
 import re
+import sys
 
 # Root URL where Seinfeld scripts are sourced
 url = 'http://www.seinfeldscripts.com/'
@@ -61,5 +62,7 @@ def get_search():
   return input()
 
 if __name__ == "__main__":
-  script_iter(get_search())
+  search_line = sys.argv[2]
+  script_iter(search_line)
+  #script_iter(get_search())
 
