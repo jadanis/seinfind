@@ -26,21 +26,22 @@ def script_parse(u):
   script_lines = script_tree.xpath('//div[@id="content"]/p/text()')
   return ''.join(script_lines)
 
+def sent_find(script):
+  regex = r'([A-Z][^\.!?]*[\.!?])'
+  return re.findall(regex,script)
+
 '''
 Would like to replace re.finditer with re.search to ignore case.
 Case can be an issue depending on the punctuation of the script
-
 Given the text we're searchign for and the script (as a string),
 we find all index instances of the text within the script.
 Create a list of tuples by searching for the surrounding periods near those indexes.
 Take the text between these values as a list of lines, and eliminate duplicates
 '''
 def script_res(search_line,script):
-  idxs = [m.start() for m in re.finditer(search_line,script)]
-  l = len(search_line)
-  t_ind = [(- script[::-1].find('.',-n),script.find('.',n+l)+1) for n in idxs]
-  res = [script[t[0]:t[1]] for t in t_ind]
-  return list(dict.fromkeys(res))
+  
+  res = [r for r in sent_find(script) if r.find(search_line) > -1]
+  return res
 
 '''
 Given the search text iterate through all scripts to find the text.
@@ -61,8 +62,10 @@ def get_search():
   print('Enter the line you\'re looking for: ')
   return input()
 
+def seinfind():
+  script_iter(get_search())
+
 if __name__ == "__main__":
   search_line = sys.argv[2]
   script_iter(search_line)
   #script_iter(get_search())
-
