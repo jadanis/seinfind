@@ -2,18 +2,19 @@ from lxml import html
 import requests
 import re
 import sys
+import itertools
 
 # Root URL where Seinfeld scripts are sourced
-url = 'http://www.seinfeldscripts.com/'
-script_list = 'seinfeld-scripts.html'
+url = 'http://www.seinology.com/'
+script_list = 'scripts-english.shtml'
 
 # Get the HTML page and parse it into a tree
 page = requests.get(url + script_list)
 tree = html.fromstring(page.content)
 
 #Episodes Titles and link to page where script is held
-episodes = tree.xpath('//td/a/text()')
-episode_links = tree.xpath('//td/a/@href')
+episodes = tree.xpath('//td//a/text()')
+#episode_links = tree.xpath('//td/a/@href')
 
 '''
 Given the link to the script and generate the tree from this
@@ -21,10 +22,21 @@ We find all the p-tags under the content-div, and join it as one string.
 Some scripts have the body in one p-tag while others have line by line encase in p tags.
 '''
 def script_parse(u):
-  script_page = requests.get(url + u)
-  script_tree = html.fromstring(script_page.content)
-  script_lines = script_tree.xpath('//div[@id="content"]/p/text()')
-  return ''.join(script_lines)
+  
+  try:
+
+    episode_num = re.findall(r'[0-9]+',u)
+    # Seinology episode link format
+    u = 'scripts/script-' + episode_num[0] + '.shtml'
+    # Retrieve page
+    script_page = requests.get(url + u)
+    # create tree
+    script_tree = html.fromstring(script_page.content)
+    # substitute whitsepace for plain space and strip result
+    script_lines = [ re.sub(r'\s', ' ', l) for l in script_tree.xpath('//p//text()') ]
+    return script_lines
+  except:
+    return []
 
 def sent_find(script):
   regex = r'([A-Z][^\.!?]*[\.!?])'
@@ -48,11 +60,11 @@ Given the search text iterate through all scripts to find the text.
 If there are results print the title of the episode along with resulting hits.
 '''
 def script_iter(search_line):
-  for n in range(len(episodes)):
-    t_s = script_parse(episode_links[n].strip())
-    res = script_res(search_line,t_s)
+  for e in episodes:
+    t_s = script_parse(e)
+    res = list(itertools.chain(*[ script_res(search_line,s) for s in t_s ]))
     if res:
-      print(episodes[n])
+      print(e)
       for r in res:
         print(r)
       print()
